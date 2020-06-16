@@ -1,3 +1,4 @@
+import logging
 import os
 import redis
 
@@ -41,6 +42,8 @@ class Config(object):
     SESSION_PERMANENT = False      #过期时间
     PERMANENT_SESSION_LIFETIME = 86400    #session有效期
 
+    '''日志级别'''
+    LEVEL = logging.DEBUG
 
 '''环境切换类'''
 #开发环境
@@ -53,7 +56,8 @@ class TestingConfig(Config):
 
 #生产环境
 class ProductConfig(Config):
-    DEBUG = True
+    DEBUG = False
+    LEVEL = logging.ERROR
 
 #这三个类通过统一的字典进行配置类访问
 config_dict = {
