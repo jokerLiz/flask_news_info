@@ -8,7 +8,7 @@ from flask_session import Session             #设置session保存位置
 import redis
 from config import Config,config_dict        #导入配置文件
 
-db = SQLAlchemy()          #关联数据库
+db = SQLAlchemy()          #获取数据库对象
 
 '''创建app的方法'''
 def create_app(config_name):
@@ -23,7 +23,7 @@ def create_app(config_name):
     # 根据config类中的LEVEL设置日志级别，由于继承父类Config，默认为DEBUG
     log_file(config.LEVEL)
 
-    db.init_app(app)  # 关联数据库
+    db.init_app(app)  # 数据库对象关联app
 
     # 初始化redis配置
     redis.StrictRedis(host=Config.RDIES_HOST,port=Config.RDIES_PORT)

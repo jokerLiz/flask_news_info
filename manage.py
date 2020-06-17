@@ -1,7 +1,7 @@
 from flask_script import Manager           # 管理app
 from flask_migrate import Migrate,MigrateCommand      #数据库迁移
-from flask_sqlalchemy import SQLAlchemy         #数据库
-from newsInfo import create_app,db             #创建app的函数
+
+from newsInfo import create_app,db,models             #创建app的函数
 
 app = create_app('develop')
 
