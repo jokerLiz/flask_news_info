@@ -1,7 +1,7 @@
 from flask_script import Manager           # 管理app
 from flask_migrate import Migrate,MigrateCommand      #数据库迁移
-from flask import session
-from newsInfo import create_app,db
+from flask_sqlalchemy import SQLAlchemy         #数据库
+from newsInfo import create_app,db             #创建app的函数
 
 app = create_app('develop')
 
@@ -11,12 +11,6 @@ manager = Manager(app)
 #迁移数据库
 Migrate(app,db)
 manager.add_command('db',MigrateCommand)
-
-
-@app.route('/')
-def index():
-    session['name2'] = 'lizhao2'
-    return 'index1'
 
 
 if __name__ == '__main__':

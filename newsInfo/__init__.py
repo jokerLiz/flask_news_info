@@ -23,6 +23,8 @@ def create_app(config_name):
     # 根据config类中的LEVEL设置日志级别，由于继承父类Config，默认为DEBUG
     log_file(config.LEVEL)
 
+    db.init_app(app)  # 关联数据库
+
     # 初始化redis配置
     redis.StrictRedis(host=Config.RDIES_HOST,port=Config.RDIES_PORT)
 
@@ -31,6 +33,11 @@ def create_app(config_name):
 
     # 设置session保存位置
     Session(app)
+
+    #在创建app时注册蓝图
+    from newsInfo.modules.index import index_blue
+    app.register_blueprint(index_blue)
+
 
     return app
 
