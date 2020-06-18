@@ -1,14 +1,16 @@
 import logging
-from logging.handlers import RotatingFileHandler
+from logging.handlers import RotatingFileHandler       #日志
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy        #数据库
 from flask_wtf import CSRFProtect             #csrf保护
 from flask_session import Session             #设置session保存位置
 import redis
-from config import Config,config_dict        #导入配置文件
+from config import config_dict        #导入配置文件字典
 
 db = SQLAlchemy()          #获取数据库对象
+
+redis_store = None
 
 '''创建app的方法'''
 def create_app(config_name):
@@ -25,8 +27,9 @@ def create_app(config_name):
 
     db.init_app(app)  # 数据库对象关联app
 
-    # 初始化redis配置
-    redis.StrictRedis(host=Config.RDIES_HOST,port=Config.RDIES_PORT)
+    # 初始化全局redis配置
+    global redis_store
+    redis_store = redis.StrictRedis(host=config.RDIES_HOST,port=config.RDIES_PORT)
 
     # 开启csrf保护，只用于服务器验 证
     CSRFProtect(app)
@@ -38,6 +41,8 @@ def create_app(config_name):
     from newsInfo.modules.index import index_blue
     app.register_blueprint(index_blue)
 
+    from newsInfo.modules.passport import passport_blue
+    app.register_blueprint(passport_blue)
 
     return app
 
