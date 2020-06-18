@@ -29,10 +29,10 @@ def create_app(config_name):
 
     # 初始化全局redis配置
     global redis_store
-    redis_store = redis.StrictRedis(host=config.RDIES_HOST,port=config.RDIES_PORT)
+    redis_store = redis.StrictRedis(host=config.RDIES_HOST,port=config.RDIES_PORT,decode_responses=True)
 
     # 开启csrf保护，只用于服务器验 证
-    CSRFProtect(app)
+    # CSRFProtect(app)
 
     # 设置session保存位置
     Session(app)
