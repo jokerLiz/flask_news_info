@@ -1,6 +1,6 @@
 from . import passport_blue
 
-from flask import request, jsonify, current_app, make_response, json
+from flask import request, jsonify, current_app, make_response, json, session
 from newsInfo.utils.response_code import RET             #返回 response响应使用的模板
 from newsInfo.utils.captcha.captcha import captcha         #导入图片验证码工具包
 from ... import redis_store, constants
@@ -11,6 +11,8 @@ from newsInfo.libs.yuntongxun.sms import CCP       #导入云通讯依赖包中�
 
 from newsInfo.models import User      #用户表
 from newsInfo import db           #数据库对象db
+
+from datetime import datetime
 
 
 '''图片验证码'''
@@ -245,4 +247,62 @@ def register():
     #9.返回成功响应
     return jsonify(errno=RET.OK,errmsg='注册成功')
 
+
+'''登录功能的实现'''
+# 1.获取参数
+# 2.校验
+# 3.通过手机号获取对象
+# 4. 判断用户是否存在
+# 5.判断密码
+# 6. 保存用户信息到session中
+# 7. 返回响应
+@passport_blue.route('/login',methods=['POST'])
+def login():
+    '''
+    1.获取参数
+    2. 校验参数
+    3. 通过手机号获取对象
+    4. 判断用户是否存在
+    5. 判断密码是否正确
+    6. 保存用户到session中
+    7. 返回响应
+    :return:
+    '''
+    #1.获取参数
+    mobile = request.json.get('mobile')
+    password = request.json.get('password')
+
+    #2. 校验参数
+    if not all([mobile,password]):
+        return jsonify(errno=RET.NODATA,errmsg='参数不足')
+
+    if not re.match('1[3579]\d{9}',mobile):    #如果手机号码不合法
+        return jsonify(errno=RET.PARAMERR,errmsg='手机格式不正确')
+
+    # 3.通过手机号取出对象
+    try:
+        user = User.query.filter_by(mobile=mobile).first()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg='查询用户失败')
+
+    # 4.判断用户是否存在
+    if not user:
+        return jsonify(errno=RET.NODATA, errmsg='该用户未注册')
+
+    # 5.判断密码是否正确
+    if not user.check_passowrd(password):
+        return jsonify(errno=RET.DATAERR, errmsg='密码错误')
+
+    # 6.保存用户到session中
+    session['user_id'] = user.id
+    session['mobile'] = mobile
+    session['nick_name'] = user.nick_name
+
+    user.last_login = datetime.now()
+
+    #7.返回响应
+    current_app.logger.debug('登陆成功')       #生成日志
+
+    return jsonify(errno=RET.OK, errmsg='登录成功')
 

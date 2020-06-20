@@ -96,7 +96,9 @@ $(function () {
 
     // TODO 登录表单提交
     $(".login_form_con").submit(function (e) {
+        //阻止默认提交事件
         e.preventDefault()
+
         var mobile = $(".login_form #mobile").val()
         var password = $(".login_form #password").val()
 
@@ -111,6 +113,26 @@ $(function () {
         }
 
         // 发起登录请求
+        var params = {
+            'mobile':mobile,
+            'password':password
+        }
+
+        $.ajax({
+            url:'/passport/login',
+            type:'post',
+            data:JSON.stringify(params),
+            contentType: 'application/json',
+            headers: {'X-CSRFToken': getCookie('csrf_token')},
+            success:function (resp) {
+                if (resp.errno == '0'){
+                     alert(resp.errmsg);
+                    window.location.reload()
+                }else{
+                    alert(resp.errmsg);
+                }
+            }
+        })
     })
 
 
@@ -162,6 +184,7 @@ $(function () {
                 //判断是否请求成功
                 if (resp.errno == '0') {
                     //重新加载当前页面
+                    alert(resp.errmsg);
                     window.location.reload()
 
                 } else {//发送失败
