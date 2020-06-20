@@ -9,6 +9,9 @@ import random
 import re
 from newsInfo.libs.yuntongxun.sms import CCP       #导入云通讯依赖包中的CCP
 
+from newsInfo.models import User      #用户表
+from newsInfo import db           #数据库对象db
+
 
 '''图片验证码'''
 #功能描述: 图片验证码
@@ -121,7 +124,7 @@ def get_sms_code():
         redis_store.delete('image_code:%s'%image_code_id)
     except Exception as e:
         current_app.logger.error(e)
-        return jsonify(errno=RET.DBERR, errmsg="删除验证码失败")
+        return jsonify(errno=RET.DBERR, errmsg="删除图片验证码失败")
 
 
     # 6.图片验证码正确性判断
@@ -159,3 +162,87 @@ def get_sms_code():
 
     # 11.返回响应
     return jsonify(errno=RET.OK,errmsg='发送成功')
+
+
+'''注册功能的实现'''
+# 功能描述：注册
+# 请求路径：/passport/register
+# 请求方式： POST
+# 请求参数：mobile，sms_code,password
+# 参数格式：Json
+# 返回值：errno,errmsg
+@passport_blue.route('/register',methods=['POST'])
+def register():
+    '''
+    1. 获取参数
+    2. 校验参数
+    3. 通过手机号在redis取出验证码
+    4. 判断短信验证码是否过期
+    5. 删除redis中的短信验证码
+    6. 判断验证码的正确性
+    7. 创建用户对象
+    8. 设置用户属性
+    9. 保存到数据库
+    10.返回成功响应
+    :return:
+    '''
+    # 1.获取参数
+    # json_data = request.data
+    # dict_data = json.loads(json_data)  # 将json格式转化为字典
+    #上边两句等于下面一句
+    dict_data = request.json
+
+    mobile = dict_data.get('mobile')
+    sms_code = dict_data.get('sms_code')
+    password = dict_data.get('password')
+
+    # 2.校验参数
+    if not all([mobile,sms_code,password]):
+        return jsonify(errno=RET.PARAMERR,errmsg='参数不全')
+
+    # 3.通过手机号在redis取出验证码
+    try:
+        redis_sms_code = redis_store.get('sms_code:%s' % mobile)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg='数据获取失败')
+
+    # 4.判断短信验证码是否过期
+    if not redis_sms_code:
+        return jsonify(errno=RET.NODATA, errmsg='验证码过期')
+
+    # 5. 删除redis中的短信验证码
+    try:
+        redis_store.delete('sms_code:%s' % mobile)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg='删除短信验证码错误')
+
+    # 6.判断验证码的正确性
+    if sms_code  != redis_sms_code:
+        return jsonify(errno=RET.DATAERR, errmsg='验证码错误')
+
+    '''
+    7. 创建用户对象
+    8. 设置用户属性
+    9. 保存到数据库
+    10.返回成功响应
+    '''
+    # 7.创建用户对象
+    user = User()
+    #8.设置用户属性
+    user.nick_name = mobile
+    user.password = password
+    user.mobile = mobile
+    #9.保存到数据库
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg='提交数据库错误')
+    #9.返回成功响应
+    return jsonify(errno=RET.OK,errmsg='注册成功')
+
+
