@@ -306,3 +306,17 @@ def login():
 
     return jsonify(errno=RET.OK, errmsg='登录成功')
 
+
+'''退出'''
+@passport_blue.route('/logout',methods=['POST'])
+def logout():
+
+    # 清除session中的信息
+    session.pop('user_id',None)
+    session.pop('mobile', None)
+    session.pop('nick_name', None)
+    return jsonify(errno=RET.OK,errmsg='OK')
+
+
+
+

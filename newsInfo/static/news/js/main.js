@@ -323,3 +323,16 @@ function generateUUID() {
     });
     return uuid;
 }
+
+//登出
+function logout() {
+    $.ajax({
+        url:'/passport/logout',
+        type:'post',
+        headers: {'X-CSRFToken': getCookie('csrf_token')},
+        success: function (resp) {
+                window.location.reload()
+        }
+
+    })
+}
