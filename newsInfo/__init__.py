@@ -44,6 +44,10 @@ def create_app(config_name):
     from newsInfo.modules.passport import passport_blue
     app.register_blueprint(passport_blue)
 
+    #注册过滤器
+    from newsInfo.utils.common import do_index_class
+    app.add_template_filter(do_index_class,'index_class')
+
     return app
 
 
